@@ -162,21 +162,21 @@ export function BookingWizard({
       role="dialog"
       aria-modal="true"
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-gm-surface p-6 shadow-card">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gm-primary-deep">
+            <h2 className="text-xl font-semibold text-gm-heading">
               {STEP_TITLES[step]}
             </h2>
             {step === "contact" && (
-              <p className="mt-1 text-sm text-gm-text/60">
-                Informe celular e nome como estão cadastrados no salão.
+              <p className="mt-1 text-sm text-gm-muted">
+                Informe celular e nome como estão cadastrados no studio.
               </p>
             )}
           </div>
           <button
             type="button"
-            className="text-gm-text/40 hover:text-gm-text"
+            className="text-gm-muted hover:text-gm-heading"
             onClick={onClose}
             aria-label="Fechar"
           >
@@ -195,19 +195,19 @@ export function BookingWizard({
         )}
 
         {loading && step !== "success" ? (
-          <p className="py-12 text-center text-gm-text/50">Carregando…</p>
+          <p className="py-12 text-center text-gm-muted">Carregando…</p>
         ) : (
           <>
             {step === "date" && (
               <div className="space-y-4">
                 {preselectedService && (
-                  <div className="rounded-xl bg-gm-cream-soft px-4 py-3 text-sm">
+                  <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm">
                     Serviço: <strong>{preselectedService.name}</strong> —{" "}
                     {formatCurrency(preselectedService.value)}
                   </div>
                 )}
                 {availableDates.length === 0 ? (
-                  <p className="py-8 text-center text-gm-text/50">
+                  <p className="py-8 text-center text-gm-muted">
                     Nenhum horário disponível no momento.
                   </p>
                 ) : (
@@ -219,7 +219,7 @@ export function BookingWizard({
                         className={`rounded-xl border px-3 py-3 text-sm font-medium transition ${
                           selectedDateKey === key
                             ? "border-gm-primary bg-gm-primary text-white"
-                            : "border-gm-primary/20 hover:border-gm-primary/50"
+                            : "border-gm-line hover:border-gm-primary/50"
                         }`}
                         onClick={() => {
                           setSelectedDateKey(key);
@@ -232,7 +232,7 @@ export function BookingWizard({
                   </div>
                 )}
                 {scheduleText && (
-                  <p className="text-center text-xs text-gm-text/50">{scheduleText}</p>
+                  <p className="text-center text-xs text-gm-muted">{scheduleText}</p>
                 )}
                 <button
                   type="button"
@@ -255,12 +255,12 @@ export function BookingWizard({
             {step === "time" && (
               <div className="space-y-4">
                 {selectedDateKey && (
-                  <p className="text-center text-sm text-gm-text/60">
+                  <p className="text-center text-sm text-gm-body">
                     {availableDates.find(([k]) => k === selectedDateKey)?.[1]}
                   </p>
                 )}
                 {slotsForDate.length === 0 ? (
-                  <p className="py-8 text-center text-gm-text/50">
+                  <p className="py-8 text-center text-gm-muted">
                     Nenhum horário neste dia.
                   </p>
                 ) : (
@@ -272,7 +272,7 @@ export function BookingWizard({
                         className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
                           selectedSlot?.startsAt === slot.startsAt
                             ? "border-gm-primary bg-gm-primary text-white"
-                            : "border-gm-primary/20 hover:border-gm-primary/50"
+                            : "border-gm-line hover:border-gm-primary/50"
                         }`}
                         onClick={() => {
                           setSelectedSlot(slot);
@@ -341,12 +341,12 @@ export function BookingWizard({
             {step === "contact" && (
               <div className="space-y-4">
                 {selectedService && selectedSlot && (
-                  <div className="rounded-xl bg-gm-cream-soft px-4 py-3 text-sm space-y-1">
+                  <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm space-y-1">
                     <p>
                       <strong>{selectedService.name}</strong> —{" "}
                       {formatCurrency(selectedService.value)}
                     </p>
-                    <p className="text-gm-text/60">{selectedSlot.label}</p>
+                    <p className="text-gm-muted">{selectedSlot.label}</p>
                   </div>
                 )}
                 <div>
@@ -378,7 +378,7 @@ export function BookingWizard({
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                   />
-                  <p className="mt-1 text-xs text-gm-text/50">
+                  <p className="mt-1 text-xs text-gm-muted">
                     Fica salvo só neste aparelho — não é enviado ao sistema.
                   </p>
                 </div>
@@ -395,9 +395,9 @@ export function BookingWizard({
 
             {step === "success" && (
               <div className="flex flex-col items-center gap-4 py-6 text-center">
-                <div className="text-5xl text-gm-gold">✓</div>
+                <div className="text-5xl text-gm-primary">✓</div>
                 <p className="text-lg font-semibold">Tudo certo!</p>
-                <p className="text-sm text-gm-text/60">{successLabel}</p>
+                <p className="text-sm text-gm-body">{successLabel}</p>
                 {selectedService && (
                   <p className="text-sm">
                     {selectedService.name} — {formatCurrency(selectedService.value)}

@@ -1,22 +1,23 @@
 import { BRAND } from "@/lib/brand";
 
 type Props = {
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
+  className?: string;
 };
 
 const SIZES = {
-  sm: "h-10 w-10 text-xs",
-  md: "h-12 w-12 text-sm",
-  lg: "h-16 w-16 text-base",
+  sm: "h-10",
+  md: "h-12",
+  lg: "h-16",
+  xl: "h-36 sm:h-44",
 };
 
-export function Logo({ size = "md" }: Props) {
+export function Logo({ size = "md", className = "" }: Props) {
   return (
-    <div
-      className={`flex items-center justify-center rounded-full bg-gradient-to-br from-gm-gold to-gm-primary font-bold tracking-widest text-white shadow-sm ${SIZES[size]}`}
-      aria-hidden
-    >
-      {BRAND.initials}
-    </div>
+    <img
+      src={BRAND.logoUrl}
+      alt={BRAND.name}
+      className={`w-auto object-contain ${SIZES[size]} ${className}`.trim()}
+    />
   );
 }

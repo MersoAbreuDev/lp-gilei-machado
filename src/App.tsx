@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { PageBackground } from "@/components/PageBackground";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { ServicesSection } from "@/components/ServicesSection";
@@ -49,7 +50,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <PageBackground>
       <Header onBookClick={() => openWizard()} />
       <main className="flex-1">
         <Hero
@@ -69,13 +70,13 @@ export default function App() {
           onBookClick={() => openWizard()}
         />
       </main>
-      <Footer />
+      <Footer onBookClick={() => openWizard()} />
       <BookingWizard
         open={wizardOpen}
         onClose={closeWizard}
         preselectedService={selectedService}
         serviceProviderId={info?.serviceProvider?.id ?? null}
       />
-    </div>
+    </PageBackground>
   );
 }

@@ -478,9 +478,6 @@ export function BookingWizard({
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                   />
-                  <p className="mt-1 text-xs text-gm-muted">
-                    Fica salvo só neste aparelho — não é enviado ao sistema.
-                  </p>
                 </div>
                 <button
                   type="button"

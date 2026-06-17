@@ -1,4 +1,5 @@
 export type GmRuntime = {
+  VITE_API_URL?: string;
   VITE_API_BASE_URL?: string;
   VITE_SALON_SLUG?: string;
   VITE_ENROLLMENT_API_KEY?: string;

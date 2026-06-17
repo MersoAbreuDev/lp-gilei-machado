@@ -8,13 +8,28 @@ import type {
 export function normalizeApiBaseUrl(raw: string): string {
   let url = raw.trim();
   if (!url) return "";
+
   url = url.replace(/^(https?)(\/\/)(?!\/)/i, "$1://");
+  url = url.replace(/^(https?):\/{3,}/i, "$1://");
+
+  while (/^(https?:\/\/)(https?:\/\/)/i.test(url)) {
+    url = url.replace(/^(https?:\/\/)(https?:\/\/)/i, "$2");
+  }
+
+  url = url.replace(/^https:\/\/https\/\//i, "https://");
+  url = url.replace(/^http:\/\/http\/\//i, "http://");
+
   return url.replace(/\/+$/, "");
 }
 
 function resolveApiBase(): string {
-  const fromRuntime = getRuntimeEnv().VITE_API_BASE_URL?.trim();
-  const raw = fromRuntime || import.meta.env.VITE_API_BASE_URL?.trim() || "";
+  const runtime = getRuntimeEnv();
+  const raw =
+    runtime.VITE_API_URL?.trim() ||
+    runtime.VITE_API_BASE_URL?.trim() ||
+    import.meta.env.VITE_API_URL?.trim() ||
+    import.meta.env.VITE_API_BASE_URL?.trim() ||
+    "";
   return normalizeApiBaseUrl(raw);
 }
 
@@ -22,7 +37,7 @@ function resolveSlug(): string {
   return (
     getRuntimeEnv().VITE_SALON_SLUG?.trim() ||
     import.meta.env.VITE_SALON_SLUG?.trim() ||
-    "gilei-machado"
+    "gilei"
   );
 }
 
@@ -48,7 +63,7 @@ function getEnrollmentKey(): string {
 
 function assertApiConfigured() {
   if (!getApiBase()) {
-    throw new Error("VITE_API_BASE_URL não configurada.");
+    throw new Error("VITE_API_URL não configurada.");
   }
 }
 

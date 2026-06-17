@@ -31,7 +31,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 
 ENV VITE_API_URL=https://hml.multsysapi.oscarpro.com.br
 ENV VITE_SALON_SLUG=gilei
-ENV VITE_ENROLLMENT_API_KEY=
+ENV VITE_ENROLLMENT_API_KEY=wcfit-local-enrollment-2026
 ENV VITE_WHATSAPP=
 ENV VITE_INSTAGRAM_URL=
 ENV PORT=80

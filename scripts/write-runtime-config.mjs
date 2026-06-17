@@ -14,7 +14,7 @@ if (!existsSync(distDir)) {
 const runtime = {
   VITE_API_URL: (process.env.VITE_API_URL ?? "https://hml.multsysapi.oscarpro.com.br").trim(),
   VITE_SALON_SLUG: (process.env.VITE_SALON_SLUG ?? "gilei").trim(),
-  VITE_ENROLLMENT_API_KEY: (process.env.VITE_ENROLLMENT_API_KEY ?? "").trim(),
+  VITE_ENROLLMENT_API_KEY: (process.env.VITE_ENROLLMENT_API_KEY ?? "wcfit-local-enrollment-2026").trim(),
   VITE_WHATSAPP: (process.env.VITE_WHATSAPP ?? "").trim(),
   VITE_INSTAGRAM_URL: (process.env.VITE_INSTAGRAM_URL ?? "").trim(),
 };

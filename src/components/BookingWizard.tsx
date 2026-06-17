@@ -6,7 +6,6 @@ import {
   formatCurrency,
   formatPhoneMask,
   getSalonSlug,
-  lookupSalonClient,
 } from "@/lib/api";
 import { getSalonNickname, setSalonNickname } from "@/lib/local-storage";
 import { formatEstimatedTimeLabel } from "@/lib/format-estimated-time";
@@ -68,7 +67,7 @@ export function BookingWizard({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [successLabel, setSuccessLabel] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [slots, setSlots] = useState<PublicSalonSlot[]>([]);
   const [services, setServices] = useState<PublicSalonService[]>([]);
@@ -112,7 +111,7 @@ export function BookingWizard({
     setName("");
     setNickname(getSalonNickname(slug));
     setError(null);
-    setSuccessLabel("");
+    setSuccessMessage("");
     void loadData();
   }, [open, preselectedServices, slug, loadData]);
 
@@ -153,10 +152,6 @@ export function BookingWizard({
     setSubmitting(true);
     setError(null);
     try {
-      const lookup = await lookupSalonClient({ phone, name });
-      if (!lookup.found) {
-        throw new Error(lookup.message);
-      }
       const result = await bookSalonAppointment({
         phone,
         name,
@@ -165,7 +160,7 @@ export function BookingWizard({
         serviceProviderId: serviceProviderId ?? undefined,
       });
       setSalonNickname(slug, nickname);
-      setSuccessLabel(result.appointment.label);
+      setSuccessMessage(result.message);
       setStep("success");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao agendar.");
@@ -195,7 +190,7 @@ export function BookingWizard({
             )}
             {step === "contact" && (
               <p className="mt-1 text-sm text-gm-muted">
-                Informe celular e nome como estão cadastrados no studio.
+                Informe seu celular e nome para confirmar o agendamento.
               </p>
             )}
           </div>
@@ -468,7 +463,7 @@ export function BookingWizard({
                   <label className="mb-1 block text-sm font-medium">Nome *</label>
                   <input
                     className="input-field"
-                    placeholder="Como está no cadastro"
+                    placeholder="Seu nome completo"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -502,7 +497,10 @@ export function BookingWizard({
               <div className="flex flex-col items-center gap-4 py-6 text-center">
                 <div className="text-5xl text-gm-primary">✓</div>
                 <p className="text-lg font-semibold">Tudo certo!</p>
-                <p className="text-sm text-gm-body">{successLabel}</p>
+                <p className="text-sm text-gm-body">{successMessage}</p>
+                {selectedSlot && (
+                  <p className="text-sm text-gm-muted">{selectedSlot.label}</p>
+                )}
                 {selectedServices.length > 0 && (
                   <div className="text-sm space-y-1">
                     {selectedServices.map((svc) => (

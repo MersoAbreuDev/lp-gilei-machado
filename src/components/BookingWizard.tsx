@@ -9,14 +9,15 @@ import {
   lookupSalonClient,
 } from "@/lib/api";
 import { getSalonNickname, setSalonNickname } from "@/lib/local-storage";
+import { formatEstimatedTimeLabel } from "@/lib/format-estimated-time";
 import type { PublicSalonService, PublicSalonSlot } from "@/types/salon";
 
-type Step = "date" | "time" | "service" | "contact" | "success";
+type Step = "service" | "date" | "time" | "contact" | "success";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  preselectedService?: PublicSalonService | null;
+  preselectedServices?: PublicSalonService[];
   serviceProviderId?: string | null;
 };
 
@@ -41,9 +42,9 @@ function dateKey(iso: string): string {
 }
 
 const STEP_TITLES: Record<Step, string> = {
+  service: "Escolha os serviços",
   date: "Escolha o dia",
   time: "Escolha o horário",
-  service: "Escolha o serviço",
   contact: "Seus dados",
   success: "Agendamento confirmado",
 };
@@ -51,16 +52,16 @@ const STEP_TITLES: Record<Step, string> = {
 export function BookingWizard({
   open,
   onClose,
-  preselectedService = null,
+  preselectedServices = [],
   serviceProviderId = null,
 }: Props) {
   const slug = getSalonSlug();
-  const [step, setStep] = useState<Step>("date");
+  const [step, setStep] = useState<Step>("service");
+  const [selectedServices, setSelectedServices] = useState<PublicSalonService[]>(
+    [],
+  );
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<PublicSalonSlot | null>(null);
-  const [selectedService, setSelectedService] = useState<PublicSalonService | null>(
-    preselectedService,
-  );
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
@@ -72,6 +73,16 @@ export function BookingWizard({
   const [slots, setSlots] = useState<PublicSalonSlot[]>([]);
   const [services, setServices] = useState<PublicSalonService[]>([]);
   const [scheduleText, setScheduleText] = useState("");
+
+  const selectedTotal = useMemo(
+    () => selectedServices.reduce((sum, svc) => sum + svc.value, 0),
+    [selectedServices],
+  );
+
+  const selectedIds = useMemo(
+    () => new Set(selectedServices.map((svc) => svc.id)),
+    [selectedServices],
+  );
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -93,17 +104,17 @@ export function BookingWizard({
 
   useEffect(() => {
     if (!open) return;
-    setStep("date");
+    setStep("service");
+    setSelectedServices(preselectedServices);
     setSelectedDateKey(null);
     setSelectedSlot(null);
-    setSelectedService(preselectedService);
     setPhone("");
     setName("");
     setNickname(getSalonNickname(slug));
     setError(null);
     setSuccessLabel("");
     void loadData();
-  }, [open, preselectedService, slug, loadData]);
+  }, [open, preselectedServices, slug, loadData]);
 
   const availableDates = useMemo(() => {
     const map = new Map<string, string>();
@@ -121,15 +132,24 @@ export function BookingWizard({
     return slots.filter((s) => dateKey(s.startsAt) === selectedDateKey);
   }, [slots, selectedDateKey]);
 
+  const toggleService = (svc: PublicSalonService) => {
+    setSelectedServices((prev) => {
+      const exists = prev.some((item) => item.id === svc.id);
+      if (exists) return prev.filter((item) => item.id !== svc.id);
+      return [...prev, svc];
+    });
+    setError(null);
+  };
+
   const goBack = () => {
     setError(null);
-    if (step === "time") setStep("date");
-    else if (step === "service") setStep("time");
-    else if (step === "contact") setStep(preselectedService ? "time" : "service");
+    if (step === "date") setStep("service");
+    else if (step === "time") setStep("date");
+    else if (step === "contact") setStep("time");
   };
 
   const handleSubmit = async () => {
-    if (!selectedSlot || !selectedService) return;
+    if (!selectedSlot || selectedServices.length === 0) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -141,7 +161,7 @@ export function BookingWizard({
         phone,
         name,
         startsAt: selectedSlot.startsAt,
-        catalogServiceId: selectedService.id,
+        catalogServiceIds: selectedServices.map((svc) => svc.id),
         serviceProviderId: serviceProviderId ?? undefined,
       });
       setSalonNickname(slug, nickname);
@@ -168,6 +188,11 @@ export function BookingWizard({
             <h2 className="text-xl font-semibold text-gm-heading">
               {STEP_TITLES[step]}
             </h2>
+            {step === "service" && (
+              <p className="mt-1 text-sm text-gm-muted">
+                Selecione um ou mais serviços e toque em Prosseguir.
+              </p>
+            )}
             {step === "contact" && (
               <p className="mt-1 text-sm text-gm-muted">
                 Informe celular e nome como estão cadastrados no studio.
@@ -184,7 +209,7 @@ export function BookingWizard({
           </button>
         </div>
 
-        {step !== "date" && step !== "success" && (
+        {step !== "service" && step !== "success" && (
           <button
             type="button"
             className="mb-4 text-sm text-gm-primary hover:underline"
@@ -198,14 +223,115 @@ export function BookingWizard({
           <p className="py-12 text-center text-gm-muted">Carregando…</p>
         ) : (
           <>
-            {step === "date" && (
+            {step === "service" && (
               <div className="space-y-4">
-                {preselectedService && (
+                {selectedServices.length > 0 && (
                   <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm">
-                    Serviço: <strong>{preselectedService.name}</strong> —{" "}
-                    {formatCurrency(preselectedService.value)}
+                    <p className="font-medium text-gm-heading">
+                      {selectedServices.length} serviço
+                      {selectedServices.length > 1 ? "s" : ""} selecionado
+                      {selectedServices.length > 1 ? "s" : ""}
+                    </p>
+                    <ul className="mt-2 space-y-1 text-gm-body">
+                      {selectedServices.map((svc) => (
+                        <li key={svc.id} className="flex justify-between gap-3">
+                          <span>{svc.name}</span>
+                          <span className="shrink-0 font-medium">
+                            {formatCurrency(svc.value)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 border-t border-gm-line/50 pt-2 font-semibold text-gm-primary">
+                      Total: {formatCurrency(selectedTotal)}
+                    </p>
                   </div>
                 )}
+
+                {services.length === 0 ? (
+                  <p className="py-8 text-center text-gm-muted">
+                    Nenhum serviço disponível no momento.
+                  </p>
+                ) : (
+                  <div className="grid gap-2">
+                    {services.map((svc) => {
+                      const selected = selectedIds.has(svc.id);
+                      return (
+                        <button
+                          key={svc.id}
+                          type="button"
+                          className={`rounded-xl border px-4 py-3 text-left transition ${
+                            selected
+                              ? "border-gm-primary bg-gm-primary/5 ring-1 ring-gm-primary"
+                              : "border-gm-line hover:border-gm-primary/50"
+                          }`}
+                          onClick={() => toggleService(svc)}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gm-heading">
+                                {svc.name}
+                              </p>
+                              {svc.description && (
+                                <p className="mt-1 line-clamp-2 text-sm text-gm-body">
+                                  {svc.description}
+                                </p>
+                              )}
+                              {formatEstimatedTimeLabel(svc.estimatedTime) && (
+                                <p className="mt-1 text-xs text-gm-muted">
+                                  {formatEstimatedTimeLabel(svc.estimatedTime)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-2">
+                              <span className="text-sm font-bold text-gm-primary">
+                                {formatCurrency(svc.value)}
+                              </span>
+                              <span
+                                className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
+                                  selected
+                                    ? "border-gm-primary bg-gm-primary text-white"
+                                    : "border-gm-line text-transparent"
+                                }`}
+                                aria-hidden
+                              >
+                                ✓
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="btn-primary w-full"
+                  disabled={selectedServices.length === 0}
+                  onClick={() => {
+                    if (selectedServices.length === 0) {
+                      setError("Selecione ao menos um serviço.");
+                      return;
+                    }
+                    setError(null);
+                    setStep("date");
+                  }}
+                >
+                  Prosseguir
+                </button>
+              </div>
+            )}
+
+            {step === "date" && (
+              <div className="space-y-4">
+                <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm">
+                  <p className="font-medium text-gm-heading">
+                    {selectedServices.length} serviço
+                    {selectedServices.length > 1 ? "s" : ""} —{" "}
+                    {formatCurrency(selectedTotal)}
+                  </p>
+                </div>
                 {availableDates.length === 0 ? (
                   <p className="py-8 text-center text-gm-muted">
                     Nenhum horário disponível no momento.
@@ -284,6 +410,12 @@ export function BookingWizard({
                     ))}
                   </div>
                 )}
+                {selectedServices.length > 1 && (
+                  <p className="text-center text-xs text-gm-muted">
+                    {selectedServices.length} serviços — o horário reservará blocos
+                    consecutivos na agenda.
+                  </p>
+                )}
                 <button
                   type="button"
                   className="btn-primary w-full"
@@ -291,42 +423,6 @@ export function BookingWizard({
                   onClick={() => {
                     if (!selectedSlot) {
                       setError("Selecione um horário.");
-                      return;
-                    }
-                    setError(null);
-                    setStep(preselectedService ? "contact" : "service");
-                  }}
-                >
-                  Continuar
-                </button>
-              </div>
-            )}
-
-            {step === "service" && (
-              <div className="space-y-4">
-                <select
-                  className="input-field"
-                  value={selectedService?.id ?? ""}
-                  onChange={(e) => {
-                    const svc = services.find((s) => s.id === e.target.value) ?? null;
-                    setSelectedService(svc);
-                    setError(null);
-                  }}
-                >
-                  <option value="">Selecione o serviço</option>
-                  {services.map((svc) => (
-                    <option key={svc.id} value={svc.id}>
-                      {svc.name} — {formatCurrency(svc.value)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="btn-primary w-full"
-                  disabled={!selectedService}
-                  onClick={() => {
-                    if (!selectedService) {
-                      setError("Selecione um serviço.");
                       return;
                     }
                     setError(null);
@@ -340,11 +436,20 @@ export function BookingWizard({
 
             {step === "contact" && (
               <div className="space-y-4">
-                {selectedService && selectedSlot && (
-                  <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm space-y-1">
-                    <p>
-                      <strong>{selectedService.name}</strong> —{" "}
-                      {formatCurrency(selectedService.value)}
+                {selectedServices.length > 0 && selectedSlot && (
+                  <div className="rounded-xl bg-gm-blush px-4 py-3 text-sm space-y-2">
+                    <ul className="space-y-1">
+                      {selectedServices.map((svc) => (
+                        <li key={svc.id} className="flex justify-between gap-3">
+                          <span>{svc.name}</span>
+                          <span className="shrink-0 font-medium">
+                            {formatCurrency(svc.value)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="border-t border-gm-line/50 pt-2 font-semibold text-gm-primary">
+                      Total: {formatCurrency(selectedTotal)}
                     </p>
                     <p className="text-gm-muted">{selectedSlot.label}</p>
                   </div>
@@ -398,10 +503,19 @@ export function BookingWizard({
                 <div className="text-5xl text-gm-primary">✓</div>
                 <p className="text-lg font-semibold">Tudo certo!</p>
                 <p className="text-sm text-gm-body">{successLabel}</p>
-                {selectedService && (
-                  <p className="text-sm">
-                    {selectedService.name} — {formatCurrency(selectedService.value)}
-                  </p>
+                {selectedServices.length > 0 && (
+                  <div className="text-sm space-y-1">
+                    {selectedServices.map((svc) => (
+                      <p key={svc.id}>
+                        {svc.name} — {formatCurrency(svc.value)}
+                      </p>
+                    ))}
+                    {selectedServices.length > 1 && (
+                      <p className="font-semibold text-gm-primary">
+                        Total: {formatCurrency(selectedTotal)}
+                      </p>
+                    )}
+                  </div>
                 )}
                 <button type="button" className="btn-primary w-full" onClick={onClose}>
                   Fechar

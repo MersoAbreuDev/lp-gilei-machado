@@ -146,7 +146,7 @@ export async function bookSalonAppointment(body: {
   phone: string;
   name: string;
   startsAt: string;
-  catalogServiceId: string;
+  catalogServiceIds: string[];
   serviceProviderId?: string;
 }): Promise<{
   appointment: {
@@ -154,6 +154,9 @@ export async function bookSalonAppointment(body: {
     startsAt: string;
     endsAt: string;
     serviceName: string;
+    serviceNames: string[];
+    services: Array<{ id: string; name: string; value: number }>;
+    totalValue: number;
     label: string;
   };
   message: string;

@@ -14,9 +14,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<PublicSalonService | null>(
-    null,
-  );
+  const [preselectedServices, setPreselectedServices] = useState<
+    PublicSalonService[]
+  >([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,13 +40,13 @@ export default function App() {
   }, [load]);
 
   const openWizard = (service?: PublicSalonService) => {
-    setSelectedService(service ?? null);
+    setPreselectedServices(service ? [service] : []);
     setWizardOpen(true);
   };
 
   const closeWizard = () => {
     setWizardOpen(false);
-    setSelectedService(null);
+    setPreselectedServices([]);
   };
 
   return (
@@ -74,7 +74,7 @@ export default function App() {
       <BookingWizard
         open={wizardOpen}
         onClose={closeWizard}
-        preselectedService={selectedService}
+        preselectedServices={preselectedServices}
         serviceProviderId={info?.serviceProvider?.id ?? null}
       />
     </PageBackground>

@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/lib/api";
+import { formatEstimatedTimeLabel } from "@/lib/format-estimated-time";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
 import { SectionHeading } from "@/components/SectionHeading";
 import type { PublicSalonService } from "@/types/salon";
@@ -30,7 +31,7 @@ export function ServicesSection({
           <SectionHeading
             eyebrow="Serviços"
             title="Procedimentos e valores"
-            subtitle="Toque em um serviço para agendar."
+            subtitle="Selecione um ou mais serviços para agendar."
             className="mb-10"
           />
         </RevealOnScroll>
@@ -51,7 +52,9 @@ export function ServicesSection({
           </RevealOnScroll>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {services.map((svc, i) => (
+            {services.map((svc, i) => {
+              const durationLabel = formatEstimatedTimeLabel(svc.estimatedTime);
+              return (
               <RevealOnScroll key={svc.id} delay={Math.min(i * 80, 320)}>
                 <button
                   type="button"
@@ -64,8 +67,8 @@ export function ServicesSection({
                       {svc.description && (
                         <p className="mt-1 line-clamp-2 text-sm text-gm-body">{svc.description}</p>
                       )}
-                      {svc.estimatedTime && (
-                        <p className="mt-1 text-xs text-gm-muted">{svc.estimatedTime}</p>
+                      {durationLabel && (
+                        <p className="mt-1 text-xs text-gm-muted">{durationLabel}</p>
                       )}
                     </div>
                     <span className="shrink-0 text-sm font-bold text-gm-primary">
@@ -74,7 +77,8 @@ export function ServicesSection({
                   </div>
                 </button>
               </RevealOnScroll>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

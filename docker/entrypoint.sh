@@ -10,7 +10,7 @@ case "$VITE_ENROLLMENT_API_KEY" in
     export VITE_ENROLLMENT_API_KEY="wcfit-local-enrollment-2026"
     ;;
 esac
-export VITE_WHATSAPP="${VITE_WHATSAPP:-5518997341959}"
+export VITE_WHATSAPP="${VITE_WHATSAPP:-5518997249165}"
 export VITE_INSTAGRAM_URL="${VITE_INSTAGRAM_URL:-}"
 envsubst '$VITE_API_URL $VITE_SALON_SLUG $VITE_ENROLLMENT_API_KEY $VITE_WHATSAPP $VITE_INSTAGRAM_URL' \
   < /runtime-config.template.js > /usr/share/nginx/html/runtime-config.js
